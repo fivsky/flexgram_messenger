@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>{% block title %}Flexgram{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.75em' font-size='80' font-family='serif'>▣</text></svg>">
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <nav class="navbar">
+        <a href="{% url 'room_list' %}" class="logo">
+            <span class="fx">FLEX</span><span class="gram">gram</span>
+        </a>
+        <div class="navbar-links">
+            {% if user.is_authenticated %}
+                <span class="user-badge">{{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn-logout">Выйти</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-login">Войти</a>
+                <a href="{% url 'register' %}" class="btn-login">Регистрация</a>
+            {% endif %}
+        </div>
+    </nav>
+    {% block content %}{% endblock %}
+</body>
+</html>

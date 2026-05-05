@@ -1,0 +1,12 @@
+{% extends 'chat_app/base.html' %}
+{% block title %}Комнаты{% endblock %}
+{% block content %}
+    <h1>Комнаты</h1>
+    {% for room in rooms %}
+        <a href="{% url 'room_detail' room.slug %}" class="room-link"># {{ room.name }}</a>
+    {% empty %}
+        <p>Нет комнат. Создайте в админке.</p>
+    {% endfor %}
+{% endblock %}
+
+

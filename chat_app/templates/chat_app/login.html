@@ -1,0 +1,16 @@
+{% extends 'chat_app/base.html' %}
+{% block title %}Вход — Flexgram{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-card">
+        <h1>Вход</h1>
+        <p class="subtitle">Добро пожаловать обратно</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Войти</button>
+        </form>
+        <p class="form-footer">Нет аккаунта? <a href="{% url 'register' %}">Регистрация</a></p>
+    </div>
+</div>
+{% endblock %}

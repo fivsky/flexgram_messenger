@@ -1,0 +1,174 @@
+{% extends 'chat_app/base.html' %}
+{% block title %}{{ room.name }} — Flexgram{% endblock %}
+{% block content %}
+<div class="chat-wrapper">
+    <div class="chat-header">
+        <div class="hash">▣</div>
+        <div>
+            <h2>{{ room.name }}</h2>
+            <span class="online">онлайн</span>
+        </div>
+    </div>
+    <div id="chat-log">
+        {% for msg in messages %}
+            <div class="msg{% if msg.user.username == user.username %} mine{% endif %}">
+                <div class="avatar">{{ msg.user.username|slice:":1"|upper }}</div>
+                <div class="msg-content">
+                    <div class="msg-header">
+                        <span class="username">{{ msg.user.username }}{% if msg.user.username == user.username %} (вы){% endif %}</span>
+                        <span class="time">{{ msg.timestamp|time:"H:i" }}</span>
+                    </div>
+                    <div class="msg-text">
+                        {% if msg.content %}{{ msg.content }}{% endif %}
+                        {% if msg.file %}
+                            {% if '.mp4' in msg.file.url or '.webm' in msg.file.url %}
+                                <video src="{{ msg.file.url }}" controls style="max-width:250px;max-height:300px;border-radius:12px;"></video>
+                            {% elif '.jpg' in msg.file.url or '.png' in msg.file.url or '.gif' in msg.file.url or '.webp' in msg.file.url %}
+                                <img src="{{ msg.file.url }}" style="max-width:200px;max-height:250px;border-radius:12px;cursor:pointer;" onclick="window.open('{{ msg.file.url }}')">
+                            {% else %}
+                                <a href="{{ msg.file.url }}" target="_blank" style="color:var(--accent);">📎 {{ msg.file.name }}</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="chat-input-wrap">
+    <input type="text" id="message-input" placeholder="Сообщение...">
+    <label for="file-input" class="attach-btn" title="Прикрепить файл">📎</label>
+    <input type="file" id="file-input">
+    <button id="audio-btn" class="media-btn" title="Голосовое">🎤</button>
+    <button id="video-btn" class="media-btn" title="Видеосообщение">📹</button>
+    <button id="send-btn">→</button>
+</div>
+</div>
+
+<script>
+(function() {
+    const roomSlug = '{{ room.slug }}';
+    const currentUser = '{{ user.username }}';
+    const ws = new WebSocket(`ws://${window.location.host}/ws/chat/${roomSlug}/`);
+    const chatLog = document.getElementById('chat-log');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const fileInput = document.getElementById('file-input');
+    const audioBtn = document.getElementById('audio-btn');
+    const videoBtn = document.getElementById('video-btn');
+
+    let mediaRecorder = null;
+    let mediaStream = null;
+    let recordedChunks = [];
+
+    function scrollDown() { chatLog.scrollTop = chatLog.scrollHeight; }
+    scrollDown();
+
+    function addMsg(username, type, payload) {
+        const mine = username === currentUser;
+        const letter = username.charAt(0).toUpperCase();
+        let body = '';
+        if (type === 'text') {
+            body = payload;
+        } else if (type === 'image') {
+            body = `<img src="${payload}" style="max-width:200px;max-height:250px;border-radius:12px;cursor:pointer;" onclick="window.open('${payload}')">`;
+        } else if (type === 'video') {
+            body = `<video src="${payload}" controls style="max-width:250px;max-height:300px;border-radius:12px;"></video>`;
+        } else if (type === 'audio') {
+            body = `<audio src="${payload}" controls style="max-width:220px;height:40px;border-radius:20px;background:rgba(122,170,106,0.2);"></audio>`;
+        } else if (type === 'file') {
+            body = `<a href="${payload.url}" target="_blank" style="color:var(--accent);">📎 ${payload.name}</a>`;
+        }
+        const div = document.createElement('div');
+        div.className = 'msg' + (mine ? ' mine' : '');
+        div.innerHTML = `
+            <div class="avatar">${letter}</div>
+            <div class="msg-content">
+                <div class="msg-header"><span class="username">${username}${mine ? ' (вы)' : ''}</span></div>
+                <div class="msg-text">${body}</div>
+            </div>`;
+        chatLog.appendChild(div);
+        scrollDown();
+    }
+
+    ws.onmessage = function(e) {
+        var d = JSON.parse(e.data);
+        if (d.type === 'message') addMsg(d.username, 'text', d.message);
+        else if (d.type === 'file') {
+            if (d.file_type === 'image') addMsg(d.username, 'image', d.file_url);
+            else if (d.file_type === 'video') addMsg(d.username, 'video', d.file_url);
+            else if (d.file_type === 'audio') addMsg(d.username, 'audio', d.file_url);
+            else addMsg(d.username, 'file', {url: d.file_url, name: d.file_name});
+        }
+    };
+
+    function sendText() {
+        const text = messageInput.value.trim();
+        if (text) {
+            ws.send(JSON.stringify({message: text}));
+            messageInput.value = '';
+            messageInput.focus();
+        }
+    }
+
+    sendBtn.onclick = sendText;
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); sendText(); }
+    });
+
+    fileInput.onchange = function() {
+        if (fileInput.files[0]) {
+            ws.send(fileInput.files[0]);
+            fileInput.value = '';
+        }
+    };
+
+    // ====== ЗАПИСЬ АУДИО / ВИДЕО ======
+    function stopMedia() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(t => t.stop());
+        }
+        audioBtn.style.background = '';
+        videoBtn.style.background = '';
+    }
+
+    async function startRecording(audioOnly) {
+        stopMedia();
+        recordedChunks = [];
+        const constraints = audioOnly ? { audio: true } : { audio: true, video: true };
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            mediaRecorder = new MediaRecorder(mediaStream, {
+                mimeType: audioOnly ? 'audio/webm' : 'video/webm'
+            });
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: audioOnly ? 'audio/webm' : 'video/webm' });
+                ws.send(blob);
+                stopMedia();
+            };
+            mediaRecorder.start();
+            // подсветка активной кнопки
+            if (audioOnly) audioBtn.style.background = 'var(--accent)';
+            else videoBtn.style.background = 'var(--accent)';
+        } catch(err) {
+            alert('Нет доступа к микрофону/камере');
+        }
+    }
+
+    audioBtn.onmousedown = () => startRecording(true);
+    audioBtn.onmouseup = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
+    audioBtn.onmouseleave = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
+
+    videoBtn.onmousedown = () => startRecording(false);
+    videoBtn.onmouseup = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
+    videoBtn.onmouseleave = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
+
+    messageInput.focus();
+})();
+</script>
+{% endblock %}
