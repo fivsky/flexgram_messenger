@@ -8,6 +8,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '1E6AZrzEYl5S3mgNXRSliJVPGrj66IuFse1EN
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://flexgram-messenger.onrender.com']
+
 
 INSTALLED_APPS = [
     'daphne',
@@ -53,6 +55,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
@@ -61,7 +64,7 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        default='sqlite:///db.sqlite3',
         conn_max_age=600
     )
 }
