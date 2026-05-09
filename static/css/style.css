@@ -293,21 +293,25 @@ body {
 /* СКРЕПКА – БОЛЬШАЯ */
 .attach-btn {
     cursor: pointer;
-    font-size: 38px;
-    padding: 10px 14px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 24px;
     color: var(--accent);
     background: rgba(122,170,106,0.15);
+    border: none;
     border-radius: 0;
     transition: all 0.3s;
-    user-select: none;
-    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-shadow: 0 0 12px rgba(122,170,106,0.6);
+    flex-shrink: 0;
 }
 .attach-btn:hover {
     background: rgba(122,170,106,0.3);
     color: var(--accent-glow);
     text-shadow: 0 0 20px var(--accent-glow);
-    transform: scale(1.1);
 }
 
 #file-input { display: none; }
@@ -330,10 +334,27 @@ body {
     transition: all 0.3s;
     flex-shrink: 0;
 }
+#send-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: var(--accent);
+    border: none;
+    color: #0f120c;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(122,170,106,0.7);
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
 #send-btn:hover {
     background: var(--accent-glow);
     box-shadow: 0 0 28px rgba(122,170,106,1);
-    transform: scale(1.05);
 }
 
 /* ====== ROOMS ====== */
@@ -553,12 +574,16 @@ h1 {
     .chat-input-wrap { padding: 8px 10px; gap: 4px; }
     .chat-input-wrap input[type="text"] { padding: 10px 8px; font-size: 12px; }
 
-    .attach-btn { font-size: 30px; padding: 8px 10px; }
-
+    .attach-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+}
     #send-btn {
-        width: 32px; height: 32px;
-        font-size: 16px; line-height: 32px;
-    }
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+}
 
     .container { padding: 20px 10px; }
     h1 { font-size: 20px; margin-bottom: 20px; }
