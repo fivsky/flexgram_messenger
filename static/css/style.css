@@ -293,16 +293,18 @@ body {
 /* СКРЕПКА – БОЛЬШАЯ */
 .attach-btn {
     cursor: pointer;
-    font-size: 32px;          /* была 18px */
-    padding: 12px 14px;
+    font-size: 38px;
+    padding: 10px 14px;
     color: var(--accent);
+    background: rgba(122,170,106,0.15);
+    border-radius: 0;
     transition: all 0.3s;
     user-select: none;
-    font-weight: 300;
     line-height: 1;
-    text-shadow: 0 0 10px rgba(122,170,106,0.4);
+    text-shadow: 0 0 12px rgba(122,170,106,0.6);
 }
 .attach-btn:hover {
+    background: rgba(122,170,106,0.3);
     color: var(--accent-glow);
     text-shadow: 0 0 20px var(--accent-glow);
     transform: scale(1.1);
@@ -310,24 +312,28 @@ body {
 
 #file-input { display: none; }
 
-.chat-input-wrap button {
-    padding: 14px 24px;
-    background: transparent;
-    border: 0.5px solid var(--accent);
-    color: var(--accent);
-    font-family: 'Unbounded', sans-serif;
-    font-weight: 500;
-    font-size: 14px;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    transition: all 0.4s;
-    text-transform: uppercase;
-    box-shadow: 0 0 12px rgba(122,170,106,0.3);
-}
-.chat-input-wrap button:hover {
+/* КНОПКА ОТПРАВКИ – яркая, компактная (36px) */
+#send-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
     background: var(--accent);
-    color: var(--prada-darker);
-    box-shadow: 0 0 24px rgba(122,170,106,0.6);
+    border: none;
+    color: #0f120c;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 36px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(122,170,106,0.7);
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+#send-btn:hover {
+    background: var(--accent-glow);
+    box-shadow: 0 0 28px rgba(122,170,106,1);
+    transform: scale(1.05);
 }
 
 /* ====== ROOMS ====== */
@@ -520,38 +526,47 @@ h1 {
 }
 .form-card .form-footer a:hover { color: var(--accent-glow); }
 
-.media-btn {
-    width: 48px;
-    height: 48px;
-    background: transparent;
-    border: 0.5px solid rgba(138,155,122,0.2);
-    border-radius: 0;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--accent);
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-}
-.media-btn:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 15px rgba(122,170,106,0.4);
-}
-
+/* ====== MOBILE ====== */
 @media (max-width: 640px) {
-    .navbar { padding: 0 20px; height: 56px; }
-    .navbar .logo { font-size: 17px; }
-    .container { padding: 32px 16px; }
+    .navbar { padding: 0 10px; height: 50px; }
+    .navbar .logo { font-size: 14px; }
+    .navbar .logo .fx { font-size: 14px; }
+    .navbar .logo .gram { font-size: 11px; }
+    .navbar-links { gap: 6px; }
+    .navbar-links a, .navbar-links .user-badge,
+    .navbar-links .btn-logout, .navbar-links .btn-login {
+        font-size: 10px; padding: 5px 8px;
+    }
+
+    .chat-wrapper { top: 50px; }
+    .chat-header { padding: 10px 12px; gap: 6px; }
+    .chat-header h2 { font-size: 14px; }
+    .chat-header .hash { width: 30px; height: 30px; font-size: 14px; }
+    .chat-header .online { font-size: 9px; }
+
+    #chat-log { padding: 10px; }
+    .msg .msg-content { max-width: 85%; }
+    .msg .avatar { width: 28px; height: 28px; font-size: 12px; }
+    .msg .msg-header .username { font-size: 10px; }
+    .msg .msg-text { font-size: 12px; padding: 8px 10px; }
+
+    .chat-input-wrap { padding: 8px 10px; gap: 4px; }
+    .chat-input-wrap input[type="text"] { padding: 10px 8px; font-size: 12px; }
+
+    .attach-btn { font-size: 30px; padding: 8px 10px; }
+
+    #send-btn {
+        width: 32px; height: 32px;
+        font-size: 16px; line-height: 32px;
+    }
+
+    .container { padding: 20px 10px; }
+    h1 { font-size: 20px; margin-bottom: 20px; }
     .rooms-grid { grid-template-columns: 1fr; }
-    .form-card { padding: 32px 24px; }
-    .chat-wrapper { top: 56px; }
-    .chat-header { padding: 14px 20px; }
-    .chat-input-wrap { padding: 12px 16px 16px; }
-    #chat-log { padding: 16px 20px; }
-    .msg .msg-content { max-width: 80%; }
-    .attach-btn { font-size: 28px; }
-} 
- 
- 
+    .room-card { padding: 16px 12px; }
+    .room-card .room-icon { font-size: 24px; }
+    .room-card .room-name { font-size: 14px; }
+
+    .form-card { padding: 20px 14px; max-width: 100%; }
+    .form-card h1 { font-size: 20px; }
+}

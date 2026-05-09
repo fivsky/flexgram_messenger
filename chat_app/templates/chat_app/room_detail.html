@@ -35,13 +35,11 @@
         {% endfor %}
     </div>
     <div class="chat-input-wrap">
-    <input type="text" id="message-input" placeholder="Сообщение...">
-    <label for="file-input" class="attach-btn" title="Прикрепить файл">📎</label>
-    <input type="file" id="file-input">
-    <button id="audio-btn" class="media-btn" title="Голосовое">🎤</button>
-    <button id="video-btn" class="media-btn" title="Видеосообщение">📹</button>
-    <button id="send-btn">→</button>
-</div>
+        <input type="text" id="message-input" placeholder="Сообщение...">
+        <label for="file-input" class="attach-btn" title="Прикрепить файл">📎</label>
+        <input type="file" id="file-input">
+        <button id="send-btn">→</button>
+    </div>
 </div>
 
 <script>
@@ -53,12 +51,6 @@
     const messageInput = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
     const fileInput = document.getElementById('file-input');
-    const audioBtn = document.getElementById('audio-btn');
-    const videoBtn = document.getElementById('video-btn');
-
-    let mediaRecorder = null;
-    let mediaStream = null;
-    let recordedChunks = [];
 
     function scrollDown() { chatLog.scrollTop = chatLog.scrollHeight; }
     scrollDown();
@@ -73,8 +65,6 @@
             body = `<img src="${payload}" style="max-width:200px;max-height:250px;border-radius:12px;cursor:pointer;" onclick="window.open('${payload}')">`;
         } else if (type === 'video') {
             body = `<video src="${payload}" controls style="max-width:250px;max-height:300px;border-radius:12px;"></video>`;
-        } else if (type === 'audio') {
-            body = `<audio src="${payload}" controls style="max-width:220px;height:40px;border-radius:20px;background:rgba(122,170,106,0.2);"></audio>`;
         } else if (type === 'file') {
             body = `<a href="${payload.url}" target="_blank" style="color:var(--accent);">📎 ${payload.name}</a>`;
         }
@@ -96,13 +86,13 @@
         else if (d.type === 'file') {
             if (d.file_type === 'image') addMsg(d.username, 'image', d.file_url);
             else if (d.file_type === 'video') addMsg(d.username, 'video', d.file_url);
-            else if (d.file_type === 'audio') addMsg(d.username, 'audio', d.file_url);
+            else if (d.file_type === 'audio') addMsg(d.username, 'audio', d.file_url);  // на случай старых аудио-файлов
             else addMsg(d.username, 'file', {url: d.file_url, name: d.file_name});
         }
     };
 
     function sendText() {
-        const text = messageInput.value.trim();
+        var text = messageInput.value.trim();
         if (text) {
             ws.send(JSON.stringify({message: text}));
             messageInput.value = '';
@@ -121,52 +111,6 @@
             fileInput.value = '';
         }
     };
-
-    // ====== ЗАПИСЬ АУДИО / ВИДЕО ======
-    function stopMedia() {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-        if (mediaStream) {
-            mediaStream.getTracks().forEach(t => t.stop());
-        }
-        audioBtn.style.background = '';
-        videoBtn.style.background = '';
-    }
-
-    async function startRecording(audioOnly) {
-        stopMedia();
-        recordedChunks = [];
-        const constraints = audioOnly ? { audio: true } : { audio: true, video: true };
-        try {
-            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-            mediaRecorder = new MediaRecorder(mediaStream, {
-                mimeType: audioOnly ? 'audio/webm' : 'video/webm'
-            });
-            mediaRecorder.ondataavailable = e => {
-                if (e.data.size > 0) recordedChunks.push(e.data);
-            };
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: audioOnly ? 'audio/webm' : 'video/webm' });
-                ws.send(blob);
-                stopMedia();
-            };
-            mediaRecorder.start();
-            // подсветка активной кнопки
-            if (audioOnly) audioBtn.style.background = 'var(--accent)';
-            else videoBtn.style.background = 'var(--accent)';
-        } catch(err) {
-            alert('Нет доступа к микрофону/камере');
-        }
-    }
-
-    audioBtn.onmousedown = () => startRecording(true);
-    audioBtn.onmouseup = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
-    audioBtn.onmouseleave = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
-
-    videoBtn.onmousedown = () => startRecording(false);
-    videoBtn.onmouseup = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
-    videoBtn.onmouseleave = () => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); };
 
     messageInput.focus();
 })();
